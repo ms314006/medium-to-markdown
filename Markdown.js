@@ -151,8 +151,7 @@ class Markdown {
             result += `\n\n${markdownContent}\n\n`
           }
         })
-      console.log(`${this.getArticleHeader()}\n${result}`)
-      // writeRes(`${this.getArticleHeader()}\n${result}`);
+      writeRes(`${this.getArticleHeader()}\n${result}`);
     });
   }
 }
