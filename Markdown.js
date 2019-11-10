@@ -63,7 +63,7 @@ class Markdown {
     const handleImage = (content) => {
       const removeWidthAndHeight = image => this.$(image).removeAttr('height').removeAttr('width');
       const image = this.$(content).find('noscript').html();
-      return `${removeWidthAndHeight(image)}\n\n`;
+      return `${removeWidthAndHeight(image)}`;
     }
     const domContent = reconvertUnicode(this.$(mediumDOM).html());
     return new Promise((resolve) => {
@@ -83,12 +83,12 @@ class Markdown {
         case 'ol':
           resolve(`<ol>\n${domContent}\n</ol>`);
           break;
+        case 'ul':
+          resolve(`<ul>\n${domContent}\n</ul>`);
+          break;
         case 'blockquote':
           const blockquoteStyle = 'font-size: 26px; color: #696969; font-style:italic';
           resolve(`<span style="${blockquoteStyle}">${this.$(domContent).text()}</span>`);
-          break;
-        case 'div':
-          resolve(handleImage(mediumDOM));
           break;
         case 'figure': // 有圖片和 iframe 兩種
           if (isImage(domContent)) {
@@ -111,14 +111,13 @@ class Markdown {
 
   parseParagraph(that, paragraph, paragraphIndex) {
     const isNotArticleContent = index => index === 1;
-    const getParagraphContent = section => this.$('div div', section).eq(0);
+    const getParagraphContent = section => {
+      return this.$('h1, h2, p, pre, ol, ul, blockquote, figure', section);
+    }
     if (paragraph.name === 'section') {
-      if (isNotArticleContent(paragraphIndex)) {
-        that.$('div', paragraph).first().remove();
-      }
       const mainContent = getParagraphContent(paragraph);
       const parseMediumPromiseArray = [];
-      that.$(mainContent).children().map(
+      that.$(mainContent).map(
         function() { parseMediumPromiseArray.push(that.parseMedium(this)); }
       );
       return new Promise((resolve) => {
@@ -143,14 +142,18 @@ class Markdown {
     });
     Promise.all(parseContentPromiseArray).then((markdownContents) => {
       let result = '';
-      markdownContents.forEach((markdownContent) => {
-        if(Array.isArray(markdownContent)) {
-          result += markdownContent.join('\n\n');
-        } else {
-          result += `\n\n${markdownContent}\n\n`
-        }
-      })
-      writeRes(result);
+      // console.log('markdownContents', markdownContents)
+      markdownContents
+        .filter(markdownContent => markdownContent !== undefined)
+        .forEach((markdownContent) => {
+          if(Array.isArray(markdownContent)) {
+            result += markdownContent.join('\n\n');
+          } else {
+            result += `\n\n${markdownContent}\n\n`
+          }
+        })
+      console.log(`${this.getArticleHeader()}\n${result}`)
+      // writeRes(`${this.getArticleHeader()}\n${result}`);
     });
   }
 }
