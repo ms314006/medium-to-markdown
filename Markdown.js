@@ -1,4 +1,5 @@
 const reconvertUnicode = require('./utils');
+const Gist = require('./Gist');
 
 class Markdown {
   constructor($) {
@@ -50,46 +51,107 @@ class Markdown {
     return result;
   }
 
+  parseIframe(iframeDom) {
+    const iframeSrc = this.$(iframeDom).find('iframe').attr('src');
+    const parseProcess = new Gist(iframeSrc);
+    return parseProcess.getMarkdown();
+  }
+
   parseMedium(mediumDOM) {
+    const isImage = content => content.indexOf('noscript') !== -1;
+    const isIframe = content => content.indexOf('iframe') !== -1;
+    const handleImage = (content) => {
+      const removeWidthAndHeight = image => this.$(image).removeAttr('height').removeAttr('width');
+      const image = this.$(content).find('noscript').html();
+      return `${removeWidthAndHeight(image)}\n\n`;
+    }
     const domContent = reconvertUnicode(this.$(mediumDOM).html());
-    switch(mediumDOM.name) {
-      case 'h1':
-        return `## ${domContent}\n\n`;
-      case 'h2':
-        return `### ${domContent}\n\n`;
-      case 'p':
-        return `${domContent}\n\n`;
-      case 'pre':
-        return `<pre>${domContent}</pre>\n\n`;
-      case 'noscript':
-        if (domContent.indexOf('img')) {
-          return `<div>${domContent.replace('width', '').replace('height', '')}</div>\n\n`;
-        }
-        return '';
-      default:
-        return '';
+    return new Promise((resolve) => {
+      switch(mediumDOM.name) {
+        case 'h1':
+          resolve(`## ${domContent}`);
+          break;
+        case 'h2':
+          resolve(`### ${domContent}`);
+          break;
+        case 'p':
+          resolve(`${domContent}`);
+          break;
+        case 'pre':
+          resolve(`<pre>${domContent}</pre>`);
+          break;
+        case 'ol':
+          resolve(`<ol>\n${domContent}\n</ol>`);
+          break;
+        case 'blockquote':
+          const blockquoteStyle = 'font-size: 26px; color: #696969; font-style:italic';
+          resolve(`<span style="${blockquoteStyle}">${this.$(domContent).text()}</span>`);
+          break;
+        case 'div':
+          resolve(handleImage(mediumDOM));
+          break;
+        case 'figure': // 有圖片和 iframe 兩種
+          if (isImage(domContent)) {
+            resolve(handleImage(mediumDOM));
+            break;
+          }
+          if (isIframe(domContent)) {
+            resolve(
+              new Promise((resolve) => {
+                resolve(this.parseIframe(mediumDOM));
+              })
+            );
+            break;
+          }
+        default:
+          resolve('');
+      }
+    })
+  }
+
+  parseParagraph(that, paragraph, paragraphIndex) {
+    const isNotArticleContent = index => index === 1;
+    const getParagraphContent = section => this.$('div div', section).eq(0);
+    if (paragraph.name === 'section') {
+      if (isNotArticleContent(paragraphIndex)) {
+        that.$('div', paragraph).first().remove();
+      }
+      const mainContent = getParagraphContent(paragraph);
+      const parseMediumPromiseArray = [];
+      that.$(mainContent).children().map(
+        function() { parseMediumPromiseArray.push(that.parseMedium(this)); }
+      );
+      return new Promise((resolve) => {
+        resolve(Promise.all(parseMediumPromiseArray));
+      });
+    } else if (paragraph.name === 'hr') {
+      return new Promise((resolve) => {
+        resolve('---');
+      });
     }
   }
 
-  getArticleContent() {
-    const isNotArticleContent = partIndex => partIndex === 1;
-    let result = '';
+  getArticleContent(writeRes) {
     const that = this;
     const articleContent = this.$('article div').first().contents();
+    const parseContentPromiseArray = [];
     articleContent.map(function (partIndex) {
-      if (this.name === 'section') {
-        // 如果是第一個 section，就清除第一個 div 裡的所有內容
-        if (isNotArticleContent(partIndex)) {
-          that.$('div', this).first().text('');
-        }
-        that.$('div', this).contents().map(function () {
-          result += that.parseMedium(this);
-        });
-      } else if (this.name === 'hr') {
-        result += '\n---\n';
-      }
+      const currentParagraph = this;
+      parseContentPromiseArray.push(
+        that.parseParagraph(that, currentParagraph, partIndex)
+      );
     });
-    return result;
+    Promise.all(parseContentPromiseArray).then((markdownContents) => {
+      let result = '';
+      markdownContents.forEach((markdownContent) => {
+        if(Array.isArray(markdownContent)) {
+          result += markdownContent.join('\n\n');
+        } else {
+          result += `\n\n${markdownContent}\n\n`
+        }
+      })
+      writeRes(result);
+    });
   }
 }
 
