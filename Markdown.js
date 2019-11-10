@@ -110,7 +110,6 @@ class Markdown {
   }
 
   parseParagraph(that, paragraph, paragraphIndex) {
-    const isNotArticleContent = index => index === 1;
     const getParagraphContent = section => {
       return this.$('h1, h2, p, pre, ol, ul, blockquote, figure', section);
     }
