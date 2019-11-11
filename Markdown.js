@@ -30,15 +30,16 @@ class Markdown {
       const href = targetDom.attr('href');
       return href && href.indexOf('tag') !== -1;
     };
-    let result = '';
+    let result = '[';
     const tags = this.$('ul li a');
     const tagKeys = Object.keys(tags);
     tagKeys.forEach((key) => {
       const targetDom = tags.eq(key);
       if (isTag(targetDom)) {
-        result += `\n- ${targetDom.text()}`;
+        result += `${targetDom.text()},`;
       }
     });
+    result += ']';
     return result;
   }
 
