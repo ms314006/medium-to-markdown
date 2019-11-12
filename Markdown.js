@@ -53,9 +53,21 @@ class Markdown {
   }
 
   parseIframe(iframeDom) {
+    const getIframeKind = (src) => {
+      if (src.indexOf('medium') !== -1) {
+        return 'gist';
+      }
+      return '';
+    };
     const iframeSrc = this.$(iframeDom).find('iframe').attr('src');
-    const parseProcess = new Gist(iframeSrc);
-    return parseProcess.getMarkdown();
+    switch(getIframeKind(iframeSrc)) {
+      case 'gist': {
+        const parseProcess = new Gist(iframeSrc);
+        return parseProcess.getMarkdown();
+      }
+      default:
+        return `<iframe src="${iframeSrc}"></iframe>`
+    }
   }
 
   parseMedium(mediumDOM) {
@@ -64,7 +76,7 @@ class Markdown {
     const handleImage = (content) => {
       const removeWidthAndHeight = image => this.$(image).removeAttr('height').removeAttr('width');
       const image = this.$(content).find('noscript').html();
-      return `${removeWidthAndHeight(image)}`;
+      return `${removeWidthAndHeight(image)}<br/>`;
     }
     const domContent = reconvertUnicode(this.$(mediumDOM).html());
     return new Promise((resolve) => {
