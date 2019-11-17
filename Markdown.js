@@ -11,18 +11,8 @@ class Markdown {
   }
 
   getArticleDate() {
-    let result = '';
-    const month = { 'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'};
-    const isThisYear = (dateArray) => dateArray.length === 2;
-    const date = this.$('div .ew a[rel="noopener"]').eq(2).text();
-    const dateArray = date.split(' ');
-    if (isThisYear(dateArray)) {
-      const now = new Date();
-      result = `${now.getFullYear()}-${month[dateArray[0]]}-${dateArray[1]}`;
-    } else {
-      result = `${dateArray[0]}-${month[dateArray[1]]}-${dateArray[2]}`;
-    }
-    return `${result} 00:00:00`;
+    const dateString = this.$('meta[property="article:published_time"]').first().attr('content');
+    return dateString.replace('T', ' ').split('.')[0];
   }
 
   getArticleTags() {

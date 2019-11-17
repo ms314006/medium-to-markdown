@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
   } else if(req.url === '/favicon.ico') {
     res.end();
   } else {
-    res.end('Hi！請在網址上輸入「/getMarkdownFrom/Medium文章網址」進行解析！');
+    res.end('Hi！請在網址上輸入「/getMarkdownFrom/Medium文章網址」進行解析！\n有時候伺服器會睡著，所以要等一下哦！');
   }
 });
 
