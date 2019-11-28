@@ -65,8 +65,16 @@ class Markdown {
     const isIframe = content => content.indexOf('iframe') !== -1;
     const handleImage = (content) => {
       const removeWidthAndHeight = image => this.$(image).removeAttr('height').removeAttr('width');
+      const handleDescribeText = text => (
+        text? (
+          `<div style="display:flex; justify-content:center; font-size: 12px">
+            <span>${text}</span>
+          </div>`
+        ) : ''
+      )
       const image = this.$(content).find('noscript').html();
-      return `${removeWidthAndHeight(image)}<br/>`;
+      const imageDescribe = this.$(content).find('figcaption').html();
+      return `${removeWidthAndHeight(image)}${handleDescribeText(imageDescribe)}<br/>`;
     }
     const domContent = reconvertUnicode(this.$(mediumDOM).html());
     return new Promise((resolve) => {
