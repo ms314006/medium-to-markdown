@@ -68,7 +68,7 @@ class Markdown {
       const handleDescribeText = text => (
         text? (
           `<div style="display:flex; justify-content:center; font-size: 12px">
-            <span>${text}</span>
+            <span>${reconvertUnicode(text)}</span>
           </div>`
         ) : ''
       )
