@@ -74,7 +74,7 @@ class Markdown {
       )
       const image = this.$(content).find('noscript').html();
       const imageDescribe = this.$(content).find('figcaption').html();
-      return `${removeWidthAndHeight(image)}${handleDescribeText(imageDescribe)}<br/>`;
+      return `<div>${removeWidthAndHeight(image)}${handleDescribeText(imageDescribe)}</div><br/>`;
     }
     const domContent = reconvertUnicode(this.$(mediumDOM).html());
     return new Promise((resolve) => {
