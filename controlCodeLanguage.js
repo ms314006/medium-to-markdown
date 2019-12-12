@@ -1,7 +1,7 @@
 const controlCodeLanguage = {
-  'js': 'javascript=',
-  'jsx': 'jsx=',
-  'ts': 'typescript=',
+  'js': 'javascript',
+  'jsx': 'jsx',
+  'ts': 'typescript',
 }
 
 module.exports = controlCodeLanguage;
