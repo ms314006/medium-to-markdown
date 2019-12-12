@@ -12,7 +12,7 @@ class Markdown {
 
   getArticleDate() {
     const dateString = this.$('meta[property="article:published_time"]').first().attr('content');
-    return dateString.replace('T', ' ').split('.')[0];
+    return dateString.split('.')[0];
   }
 
   getArticleTags() {
